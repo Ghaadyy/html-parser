@@ -1,13 +1,13 @@
 module DOM where
 
--- import qualified Data.Map as Map
+import qualified Data.Map as M
 
--- type HTMLAttributes = Map.Map String String
+type HTMLAttributes = M.Map String String
 type HTMLTag = String
 type HTMLContent = String
 
 data DOMTree = EmptyTree 
-    | HTMLElement HTMLTag [DOMTree]  
+    | HTMLElement HTMLTag HTMLAttributes [DOMTree]  
     | TextNode HTMLContent
     deriving (Show, Eq)
 
@@ -15,6 +15,6 @@ addElement :: DOMTree -> DOMTree -> DOMTree
 addElement tree el = EmptyTree
 
 tagName :: DOMTree -> HTMLTag
-tagName (HTMLElement tagName@(head:tail) _)  
+tagName (HTMLElement tagName@(head:tail) _ _)  
     | head == '/' = tail
     | otherwise = tagName

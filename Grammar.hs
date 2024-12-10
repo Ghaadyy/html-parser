@@ -13,11 +13,10 @@ import DOM (DOMTree(HTMLElement), tagName)
 
 html :: Parser DOMTree
 html = do
-    tagTree <- tagOpen
+    (HTMLElement openTagName attributes children) <- tagOpen
     children <- many' (textParser <|> html)
-    tagCloseTree <- tagClose
-    if tagName tagTree /= tagName tagCloseTree
-        then Parser $ \input -> Left [TagsNotMatched]
-    else return (HTMLElement (tagName tagTree) children)
+    (HTMLElement closeTagName _ _) <- tagClose
+    if openTagName /= tail closeTagName then Parser $ \input -> Left [TagsNotMatched]
+    else return (HTMLElement openTagName attributes children)
 -- this does not *properly* take into account the matching of tags yet
 -- we should handle error propagation and aggregation properly.
