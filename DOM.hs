@@ -7,11 +7,10 @@ import Data.Maybe (fromMaybe)
 type HTMLAttributes = M.Map String String
 type HTMLTag = String
 type HTMLContent = String
-type Attributes = Map.Map String String
 
 data DOMTree 
     = EmptyTree 
-    | HTMLElement HTMLTag Attributes [DOMTree]  
+    | HTMLElement HTMLTag HTMLAttributes [DOMTree]  
     | TextNode HTMLContent
     deriving (Show, Eq)
 
