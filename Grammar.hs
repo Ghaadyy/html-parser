@@ -1,4 +1,4 @@
-module Grammar where
+module Grammar (html) where
 
 import qualified Data.Map as M
 import Combinators

@@ -1,6 +1,16 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Combinators where
+module Combinators (
+  Parser(..),
+  Error(..),
+  Token(..),
+  satisfy,
+  char,
+  string,
+  many',
+  many1,
+  choice
+) where
 
 import qualified Data.Map as M
 import Control.Applicative (Alternative(..))
