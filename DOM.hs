@@ -15,15 +15,15 @@ module DOM (
 import qualified Data.Map as M
 import Data.List (intercalate, isInfixOf)
 import Data.Maybe (fromMaybe)
-import Control.Applicative (Alternative(..)) 
+import Control.Applicative (Alternative(..))
 
 type HTMLAttributes = M.Map String String
 type HTMLTag = String
 type HTMLContent = String
 
-data DOMTree 
-    = EmptyTree 
-    | HTMLElement HTMLTag HTMLAttributes [DOMTree]  
+data DOMTree
+    = EmptyTree
+    | HTMLElement HTMLTag HTMLAttributes [DOMTree]
     | TextNode HTMLContent
     deriving (Show, Eq)
 
@@ -35,14 +35,14 @@ addElement tree _ = tree
 findById :: String -> DOMTree -> Maybe DOMTree
 findById _ EmptyTree = Nothing
 findById _ (TextNode _) = Nothing
-findById targetId el@(HTMLElement _ attrs children) 
+findById targetId el@(HTMLElement _ attrs children)
     | M.lookup "id" attrs == Just targetId = Just el
     | otherwise = foldr (\child acc -> acc <|> findById targetId child) Nothing children
 
 findByClass :: String -> DOMTree -> [DOMTree]
 findByClass _ EmptyTree = []
 findByClass _ (TextNode _) = []
-findByClass targetClass el@(HTMLElement _ attrs children) 
+findByClass targetClass el@(HTMLElement _ attrs children)
     | maybe False (targetClass `isInfixOf`) (M.lookup "class" attrs) = el : childrenResults
     | otherwise = childrenResults
   where
@@ -51,7 +51,7 @@ findByClass targetClass el@(HTMLElement _ attrs children)
 findByTag :: String -> DOMTree -> [DOMTree]
 findByTag _ EmptyTree = []
 findByTag _ (TextNode _) = []
-findByTag targetTag el@(HTMLElement tag _ children) 
+findByTag targetTag el@(HTMLElement tag _ children)
     | tag == targetTag = el : childrenResults
     | otherwise = childrenResults
   where
@@ -60,7 +60,7 @@ findByTag targetTag el@(HTMLElement tag _ children)
 findByAttribute :: String -> String -> DOMTree -> [DOMTree]
 findByAttribute _ _ EmptyTree = []
 findByAttribute _ _ (TextNode _) = []
-findByAttribute key value el@(HTMLElement _ attrs children) 
+findByAttribute key value el@(HTMLElement _ attrs children)
     | M.lookup key attrs == Just value = el : childrenResults
     | otherwise = childrenResults
   where
@@ -166,6 +166,6 @@ toMarkdown (HTMLElement "img" attributes _) =
           (\src ->
               let altText = M.lookup "alt" attributes
                   title = M.lookup "title" attributes
-              in "![" ++ fromMaybe "" altText ++ "](" ++ src ++ fromMaybe "" title ++ ") ") -- altText and title are replaced by empty if they fail
+              in "![" ++ fromMaybe "" altText ++ "](" ++ src ++ maybe "" (" " ++) title ++ ")\n") -- altText and title are replaced by empty if they fail
           (M.lookup "src" attributes) -- result
-toMarkdown (HTMLElement _ _ children) = concatMap toMarkdown children ++ " " -- other unsupported
+toMarkdown (HTMLElement _ _ children) = concatMap toMarkdown children ++ "\n" -- other unsupported
