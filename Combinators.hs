@@ -2,6 +2,7 @@
 
 module Combinators where
 
+import qualified Data.Map as M
 import Control.Applicative (Alternative(..))
 import Data.Char (isSpace, isAsciiLower, isAsciiUpper)
 import GHC.Unicode (isDigit)
@@ -51,6 +52,10 @@ instance Monad Parser where
     (output, rest) <- p input
     runParser (k output) rest
 
+instance MonadFail Parser where
+  fail :: String -> Parser a
+  fail _ = Parser $ \input -> Left [Unexpected]
+
 instance Alternative Parser where
   empty :: Parser a
   empty = Parser $ \_ -> Left [Empty]
@@ -85,34 +90,80 @@ many' :: Parser a -> Parser [a]
 many' p = many1 p <|> return []
 
 many1 :: Parser a -> Parser [a]
-many1 p = do  
+many1 p = do
   x <- p
   xs <- many1 p <|> return []
   return (x:xs)
 
+choice :: [Parser a] -> Parser a
+choice = foldr (<|>) (fail "No parser")
+
 whitespaceParser :: Parser Token
 whitespaceParser = do
-    ws <- many1 (satisfy isSpace)
+    ws <- many' (satisfy isSpace)
     return $ Whitespace ws
+
+tags:: [String]
+tags =
+  [ "html", "head", "title", "body", "header", "footer", "nav", "main"
+  , "section", "article", "aside", "h1", "h2", "h3", "h4", "h5", "h6"
+  , "p", "ul", "ol", "li", "a", "img", "div", "span", "form", "input"
+  , "button", "label", "textarea", "select", "option", "table", "tr"
+  , "td", "th", "thead", "tbody", "footer", "script", "style", "link"
+  , "meta", "canvas", "figure", "figcaption", "audio", "video"
+  ]
 
 tagOpen :: Parser DOMTree
 tagOpen = do
   _ <- char '<'
-  tagName <- many' (satisfy isAsciiLower)
+  tagName <- choice (map string tags)
+  whitespaceParser
+  attrs <- attributes
+  whitespaceParser
   _ <- char '>'
-  return $ HTMLElement tagName []
+  return $ HTMLElement tagName attrs []
 
 tagClose :: Parser DOMTree
 tagClose = do
   _ <- string "</"
-  tagName <- many' (satisfy isAsciiLower)
+  tagName <- choice (map string tags)
   _ <- char '>'
-  return $ HTMLElement ("/" ++ tagName) []
+  return $ HTMLElement ("/" ++ tagName) M.empty []
 
 textParser :: Parser DOMTree
 textParser = do
   txt <- many1 (satisfy (\c -> isAsciiLower c || isAsciiUpper c || isDigit c || isSpace c))
   return $ TextNode txt
+
+attributes :: Parser (M.Map String String)
+attributes = M.fromList <$> many' attribute
+
+attribute :: Parser (String, String)
+attribute = attributeSingleQuoted <|> attributeDoubleQuoted
+
+attributeSingleQuoted :: Parser (String, String)
+attributeSingleQuoted = do
+  whitespaceParser
+  key <- many' (satisfy isAsciiLower)
+  whitespaceParser
+  char '='
+  whitespaceParser
+  char '\''
+  value <- many' (satisfy (/= '\''))
+  char '\''
+  return (key, value)
+
+attributeDoubleQuoted :: Parser (String, String)
+attributeDoubleQuoted = do
+  whitespaceParser
+  key <- many' (satisfy isAsciiLower)
+  whitespaceParser
+  char '='
+  whitespaceParser
+  char '\"'
+  value <- many' (satisfy (/= '\"'))
+  char '\"'
+  return (key, value)
 
 -- test input
 input :: String
