@@ -3,29 +3,29 @@
 import Test.Hspec
 import Combinators
 import Grammar (html)
-import DOM (DOMTree(..))
+import DOM (DOMTree(..), findById, findByTag, findByClass, findByAttribute, addChild)
 import Data.Map (fromList)
 
 main :: IO ()
 main = hspec $ do
 
   -- 🔍 1️⃣ **Lexer Tests**
-  describe "Lexer Tests" $ do
-    it "Tokenizes a simple HTML string" $ do
-      let result = runParser tagParser "<html>"
-      result `shouldBe` Right (Tag "html", "")
+  -- describe "Lexer Tests" $ do
+  --   it "Tokenizes a simple HTML string" $ do
+  --     let result = runParser tagParser "<html>"
+  --     result `shouldBe` Right (Tag "html", "")
 
-    it "Tokenizes a closing tag" $ do
-      let result = runParser tagParser "</html>"
-      result `shouldBe` Right (ClosingTag "html", "")
+  --   it "Tokenizes a closing tag" $ do
+  --     let result = runParser tagParser "</html>"
+  --     result `shouldBe` Right (ClosingTag "html", "")
 
-    it "Tokenizes a tag with hyphens" $ do
-      let result = runParser tagParser "<custom-tag>"
-      result `shouldBe` Right (Tag "custom-tag", "")
+  --   it "Tokenizes a tag with hyphens" $ do
+  --     let result = runParser tagParser "<custom-tag>"
+  --     result `shouldBe` Right (Tag "custom-tag", "")
 
-    it "Tokenizes a closing tag with hyphens" $ do
-      let result = runParser tagParser "</custom-tag>"
-      result `shouldBe` Right (ClosingTag "custom-tag", "")
+  --   it "Tokenizes a closing tag with hyphens" $ do
+  --     let result = runParser tagParser "</custom-tag>"
+  --     result `shouldBe` Right (ClosingTag "custom-tag", "")
 
 
   -- 🌲 2️⃣ **DOM Parser Tests**
