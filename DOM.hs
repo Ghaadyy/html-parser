@@ -2,6 +2,7 @@ module DOM where
 
 import qualified Data.Map as M
 import Data.List (intercalate)
+import Data.Maybe (fromMaybe)
 
 type HTMLAttributes = M.Map String String
 type HTMLTag = String
@@ -84,3 +85,60 @@ formatAttributes attrs =
 
 indent :: Int -> String
 indent level = concat $ replicate level "   "
+
+
+toMarkdown :: DOMTree -> String
+toMarkdown EmptyTree = []
+toMarkdown (TextNode content) = content ++ " "
+toMarkdown (HTMLElement "h1" _ children) = "# " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "h2" _ children) = "## " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "h3" _ children) = "### " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "h4" _ children) = "#### " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "h5" _ children) = "##### " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "h6" _ children) = "###### " ++ concatMap toMarkdown children ++ "\n"
+toMarkdown (HTMLElement "ol" _ children) = toMdOrderedList 1 children
+    where
+        toMdOrderedList :: Int -> [DOMTree] -> String
+        toMdOrderedList _ [] = "\n"
+        toMdOrderedList n (li@(HTMLElement "li" _ children):xs) = show n ++ ". " ++ concatMap toMarkdown children ++ "\n" ++ toMdOrderedList (n + 1) xs
+        toMdOrderedList n (_:xs) = toMdOrderedList n xs
+toMarkdown (HTMLElement "ul" _ children) = toMdUnorderedList children
+    where
+        toMdUnorderedList :: [DOMTree] -> String
+        toMdUnorderedList [] = "\n"
+        toMdUnorderedList (li@(HTMLElement "li" _ children):xs) = "* " ++ concatMap toMarkdown children ++ "\n" ++ toMdUnorderedList xs
+        toMdUnorderedList (x:xs) = toMdUnorderedList xs
+toMarkdown (HTMLElement "a" attributes children) =
+    maybe (concatMap toMarkdown children) -- gets called if result is Nothing
+          (\href -> "[" ++ concatMap toMarkdown children ++ "](" ++ href ++ ") ")  -- gets called if result is Just ...
+          (M.lookup "href" attributes >>= \href -> if null href then Nothing else Just href) -- result
+toMarkdown (HTMLElement "img" attributes _) =
+    maybe "" -- return empty if cant find src attribute aka Nothing
+          (\src ->
+              let altText = M.lookup "alt" attributes
+                  title = M.lookup "title" attributes
+              in "![" ++ fromMaybe "" altText ++ "](" ++ src ++ fromMaybe "" title ++ ") ") -- altText and title are replaced by empty if they fail
+          (M.lookup "src" attributes) -- result
+toMarkdown (HTMLElement _ _ children) = concatMap toMarkdown children ++ " " -- other unsupported
+
+-- main :: IO ()
+-- main = do
+--     let exampleSimpleTree = HTMLElement "html" M.empty [
+--             HTMLElement "h1" M.empty [TextNode "H1 is in the house"],
+--             HTMLElement "a" (M.fromList [("href", "https://example.com")]) [TextNode "Link with href"],
+--             HTMLElement "a" (M.fromList [("href", "")]) [TextNode "Link with empty href"],
+--             HTMLElement "a" M.empty [TextNode "Link without href"],
+--             HTMLElement "img" (M.fromList [("src", "image.jpg"), ("alt", "A cool image"), ("title", "Image title")]) []]
+--     let exampleListTree = HTMLElement "div" M.empty [ 
+--             HTMLElement "ul" M.empty  [ 
+--                 HTMLElement "li" M.empty  [TextNode "First item"], 
+--                 HTMLElement "li" M.empty  [TextNode "Second item"], 
+--                 HTMLElement "li" M.empty  [TextNode "Third item"], 
+--                 HTMLElement "li" M.empty  [TextNode "Fourth item"]], 
+--             HTMLElement "ol" M.empty  [ 
+--                 HTMLElement "li" M.empty  [HTMLElement "a" (M.fromList [("href", "https://example.com")]) [TextNode "Link with href"]], 
+--                 HTMLElement "li" M.empty  [TextNode "Second numbered item"], 
+--                 HTMLElement "li" M.empty  [TextNode "Third numbered item"], 
+--                 HTMLElement "li" M.empty  [TextNode "Fourth numbered item"]]]
+--     print $ toMarkdown exampleSimpleTree
+--     print $ toMarkdown exampleListTree
