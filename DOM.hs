@@ -1,8 +1,21 @@
-module DOM where
+module DOM (
+    DOMTree(..),
+    Patch(..),
+    addElement,
+    addChild,
+    findById,
+    findByClass,
+    findByTag,
+    findByAttribute,
+    diff,
+    displayDiff,
+    toMarkdown
+) where
 
 import qualified Data.Map as M
-import Data.List (intercalate)
+import Data.List (intercalate, isInfixOf)
 import Data.Maybe (fromMaybe)
+import Control.Applicative (Alternative(..)) 
 
 type HTMLAttributes = M.Map String String
 type HTMLTag = String
@@ -18,6 +31,44 @@ addElement :: DOMTree -> DOMTree -> DOMTree
 addElement (HTMLElement tag attrs children) el = HTMLElement tag attrs (children ++ [el])
 addElement EmptyTree el = el
 addElement tree _ = tree
+
+findById :: String -> DOMTree -> Maybe DOMTree
+findById _ EmptyTree = Nothing
+findById _ (TextNode _) = Nothing
+findById targetId el@(HTMLElement _ attrs children) 
+    | M.lookup "id" attrs == Just targetId = Just el
+    | otherwise = foldr (\child acc -> acc <|> findById targetId child) Nothing children
+
+findByClass :: String -> DOMTree -> [DOMTree]
+findByClass _ EmptyTree = []
+findByClass _ (TextNode _) = []
+findByClass targetClass el@(HTMLElement _ attrs children) 
+    | maybe False (targetClass `isInfixOf`) (M.lookup "class" attrs) = el : childrenResults
+    | otherwise = childrenResults
+  where
+    childrenResults = concatMap (findByClass targetClass) children
+
+findByTag :: String -> DOMTree -> [DOMTree]
+findByTag _ EmptyTree = []
+findByTag _ (TextNode _) = []
+findByTag targetTag el@(HTMLElement tag _ children) 
+    | tag == targetTag = el : childrenResults
+    | otherwise = childrenResults
+  where
+    childrenResults = concatMap (findByTag targetTag) children
+
+findByAttribute :: String -> String -> DOMTree -> [DOMTree]
+findByAttribute _ _ EmptyTree = []
+findByAttribute _ _ (TextNode _) = []
+findByAttribute key value el@(HTMLElement _ attrs children) 
+    | M.lookup key attrs == Just value = el : childrenResults
+    | otherwise = childrenResults
+  where
+    childrenResults = concatMap (findByAttribute key value) children
+
+addChild :: DOMTree -> DOMTree -> DOMTree
+addChild (HTMLElement tag attrs children) newChild = HTMLElement tag attrs (children ++ [newChild])
+addChild tree _ = tree
 
 type ParentPos = Int
 type Pos = Int

@@ -4,7 +4,6 @@ import Test.Hspec
 import Combinators
 import Grammar (html)
 import DOM (DOMTree(..))
-import DOMOperations (findById, findByClass, findByTag, findByAttribute, addChild)
 import Data.Map (fromList)
 
 main :: IO ()
