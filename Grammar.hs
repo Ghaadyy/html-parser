@@ -7,23 +7,10 @@ import DOM (DOMTree(HTMLElement), tagName)
 
 html :: Parser DOMTree
 html = do
-  tagTree <- tagOpen
-  children <- many' (textParser <|> html)
-  tagCloseTree <- tagClose
-  if tagName tagTree /= tagName tagCloseTree
-    then Parser $ \input -> Left [TagsNotMatched]
-    else return (HTMLElement (tagName tagTree) Map.empty children)
-
-tagOpen :: Parser DOMTree
-tagOpen = do
-  token <- tagParser
-  case token of
-    Tag tagName -> return $ HTMLElement tagName Map.empty []
-    _ -> Parser $ \_ -> Left [TagsNotMatched]
-
-tagClose :: Parser DOMTree
-tagClose = do
-  token <- tagParser
-  case token of
-    ClosingTag tagName -> return $ HTMLElement tagName Map.empty []
-    _ -> Parser $ \_ -> Left [TagsNotMatched]
+    (HTMLElement openTagName attributes children) <- tagOpen
+    children <- many' (textParser <|> html)
+    (HTMLElement closeTagName _ _) <- tagClose
+    if openTagName /= tail closeTagName then Parser $ \input -> Left [TagsNotMatched]
+    else return (HTMLElement openTagName attributes children)
+-- this does not *properly* take into account the matching of tags yet
+-- we should handle error propagation and aggregation properly.
