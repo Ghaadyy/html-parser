@@ -1,0 +1,96 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[bookmarks, colorlinks=false, pdfborder={0 0 0}, pdftitle={A Functional HTML Parser}, pdfauthor={Ghady Youssef, Antoine Karam, Joseph Samara}, pdfsubject={A Functional HTML Parser}, pdfkeywords={Functional Programming, Parser Combinators, Monads}]{hyperref}
+
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\usepackage{amsmath}
+
+\usepackage[
+    top=3cm,
+    bottom=3cm,
+    left=3cm,
+    right=3cm,
+]{geometry}
+
+\bibliographystyle{plain}
+
+\begin{document}
+
+\input{title}
+
+\pagenumbering{roman}
+
+\newpage
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+In this report, we present a functional HTML parser written in Haskell. This tool provides core features such as HTML parsing, DOM tree manipulation, and can output other documents, such as markdown.
+
+\section{Parser Combinators}
+
+Libraries such as \textit{parsec} provide APIs for working with monadic parser combinators. This allows us to write grammars in a declarative way. Our HTML parser is written using parser combinators, and we provide our own implementation based on \cite{parsec, combinatorshaskell}.
+
+Using parser combinators, we can construct complex parsers from simpler ones. Combinators such as \texttt{choice}, \texttt{many}, \texttt{char}, and \texttt{string} allow us to compose complex patterns based on our needs. We heavily rely on monads to chain multiple parsers, which enables us to write cleaner code and improve error handling.
+
+Each parser sequentially consumes input from the input stream, and at each stage, it could potentially fail and return an error instead of the consumed input. This makes it easy to chain multiple parsers in a \texttt{do} block or use \texttt{<|>} to express an alternative path in the grammar.
+
+\section{Grammar}
+
+A simple LL(1) grammar suffices for our simple parser. This grammar encodes a subset of the HTML language.
+
+\[
+    \begin{aligned}
+        \text{html}     & \rightarrow \ \text{tagOpen}\ \text{children}\ \text{tagClose} \mid \epsilon \\
+        \text{children} & \rightarrow \ \textbf{text} \mid \text{html}                                 \\
+    \end{aligned}
+\]
+
+\section{DOM-like API}
+
+We also provide a set of functions that allow the user to manipulate the \texttt{DOMTree} such as \texttt{findById} or \texttt{findByClass} and \texttt{addElement}.
+
+\section{Markdown Compilation}
+
+Our library allows the user to parse HTML documents and translate them into corresponding markdown files. Any irrelevant HTML tag that does not have an equivalent in markdown is stripped out.
+
+\section{Diff Computations}
+
+We implemented the \texttt{diff} function which computes the differences between two HTML documents.
+The algorithm implemented in this function is inspired by the React Virtual DOM reconciliation \cite{reactdiff}. First, we check if the two elements of the tree are different. If so, we replace the entire DOM subtree. If both elements are of the same type, we check the attributes and compute the differences in both the attributes and the children of the node.
+The signature for this function is as follows:
+
+\begin{verbatim}
+diff :: DOMTree -> DOMTree -> [Patch]
+\end{verbatim}
+
+\section{Future Work}
+
+\subsection{Enhanced Error Handling}
+
+Since our parser is based on the implementation of monadic parser combinators, we can benefit from the \texttt{Monad} and \texttt{Alternative} type classes to gracefully handle errors and display meaningful messages.
+
+\subsection{Enhanced Parsing for More HTML Tags}
+
+We can extend support to include more HTML tags, such as \texttt{<strong>}, \texttt{<b>}, \texttt{<i>}, and self-closing tags.
+
+Currently, our implementation does not handle cases where a \texttt{TextNode} and other \texttt{HTMLElement}s are siblings. For example:
+
+\begin{verbatim}
+<p>Hello <span>World</span></p> 
+\end{verbatim}
+
+This fails because our implementation supports either \texttt{TextNode} \textbf{or} \texttt{HTMLElement} as the contents of an existing \texttt{DOMTree}, but not both simultaneously.
+
+\subsection{Support for More Markdown Generation}
+
+We can add support for advanced HTML tags and implement proper handling of nested lists with indentation for both \texttt{<ol>} and \texttt{<ul>}, as well as support for tables.
+
+We can adjust the formatting slightly and consider using parser combinators to build our Markdown generator. Currently, our parser combinator takes input as a \texttt{String}; we can extend it to accept input as a \texttt{DOMTree} as well.
+
+\bibliography{refs}
+
+\end{document}
