@@ -2,14 +2,8 @@ module Grammar where
 
 import Combinators
 import Control.Applicative (Alternative(..))
-import Debug.Trace
+import qualified Data.Map as Map
 import DOM (DOMTree(HTMLElement), tagName)
-
--- Basic HTML Grammar
--- html     := tagOpen (text|html)? tagClose | epsilon
--- text     := ...
--- tagOpen  := ...
--- tagClose := ...
 
 html :: Parser DOMTree
 html = do

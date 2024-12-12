@@ -7,14 +7,18 @@ import Data.Maybe (fromMaybe)
 type HTMLAttributes = M.Map String String
 type HTMLTag = String
 type HTMLContent = String
+type Attributes = Map.Map String String
 
-data DOMTree = EmptyTree 
-    | HTMLElement HTMLTag HTMLAttributes [DOMTree]  
+data DOMTree 
+    = EmptyTree 
+    | HTMLElement HTMLTag Attributes [DOMTree]  
     | TextNode HTMLContent
     deriving (Show, Eq)
 
 addElement :: DOMTree -> DOMTree -> DOMTree
-addElement tree el = EmptyTree
+addElement (HTMLElement tag attrs children) el = HTMLElement tag attrs (children ++ [el])
+addElement EmptyTree el = el
+addElement tree _ = tree
 
 tagName :: DOMTree -> HTMLTag
 tagName (HTMLElement tagName@(head:tail) _ _)  
