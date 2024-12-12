@@ -19,11 +19,6 @@ addElement (HTMLElement tag attrs children) el = HTMLElement tag attrs (children
 addElement EmptyTree el = el
 addElement tree _ = tree
 
-tagName :: DOMTree -> HTMLTag
-tagName (HTMLElement tagName@(head:tail) _ _)  
-    | head == '/' = tail
-    | otherwise = tagName
-
 type ParentPos = Int
 type Pos = Int
 data Patch

@@ -2,7 +2,7 @@ module DOMOperations where
 
 import qualified Data.Map as Map
 import Data.List (isInfixOf)
-import DOM (DOMTree(..), tagName)
+import DOM (DOMTree(..))
 import Control.Applicative (Alternative(..)) 
 
 findById :: String -> DOMTree -> Maybe DOMTree

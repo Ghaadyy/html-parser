@@ -4,7 +4,7 @@ import qualified Data.Map as M
 import Combinators
 import Control.Applicative (Alternative(..))
 import qualified Data.Map as Map
-import DOM (DOMTree(..), tagName)
+import DOM (DOMTree(..))
 import Data.Char (isAsciiLower, isSpace, isAsciiUpper, isDigit)
 
 html :: Parser DOMTree
