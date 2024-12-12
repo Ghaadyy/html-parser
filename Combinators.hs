@@ -154,16 +154,3 @@ attributeDoubleQuoted = do
   value <- many' (satisfy (/= '\"'))
   char '\"'
   return (key, value)
-
--- test input
-input :: String
-input = "<html><ol><li>test</li><li>another item</li></ol></html>"
-
--- tagParser :: Parser Token
--- tagParser = tagOpen <|> tagClose
-
--- lexer :: Parser [Token]
--- lexer = many' (whitespaceParser <|> textParser <|> tagParser)
-
--- runLexer :: String -> Either [Error] [Token]
--- runLexer input = fmap fst (runParser lexer input)

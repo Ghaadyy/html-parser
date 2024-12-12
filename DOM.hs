@@ -123,25 +123,3 @@ toMarkdown (HTMLElement "img" attributes _) =
               in "![" ++ fromMaybe "" altText ++ "](" ++ src ++ fromMaybe "" title ++ ") ") -- altText and title are replaced by empty if they fail
           (M.lookup "src" attributes) -- result
 toMarkdown (HTMLElement _ _ children) = concatMap toMarkdown children ++ " " -- other unsupported
-
--- main :: IO ()
--- main = do
---     let exampleSimpleTree = HTMLElement "html" M.empty [
---             HTMLElement "h1" M.empty [TextNode "H1 is in the house"],
---             HTMLElement "a" (M.fromList [("href", "https://example.com")]) [TextNode "Link with href"],
---             HTMLElement "a" (M.fromList [("href", "")]) [TextNode "Link with empty href"],
---             HTMLElement "a" M.empty [TextNode "Link without href"],
---             HTMLElement "img" (M.fromList [("src", "image.jpg"), ("alt", "A cool image"), ("title", "Image title")]) []]
---     let exampleListTree = HTMLElement "div" M.empty [ 
---             HTMLElement "ul" M.empty  [ 
---                 HTMLElement "li" M.empty  [TextNode "First item"], 
---                 HTMLElement "li" M.empty  [TextNode "Second item"], 
---                 HTMLElement "li" M.empty  [TextNode "Third item"], 
---                 HTMLElement "li" M.empty  [TextNode "Fourth item"]], 
---             HTMLElement "ol" M.empty  [ 
---                 HTMLElement "li" M.empty  [HTMLElement "a" (M.fromList [("href", "https://example.com")]) [TextNode "Link with href"]], 
---                 HTMLElement "li" M.empty  [TextNode "Second numbered item"], 
---                 HTMLElement "li" M.empty  [TextNode "Third numbered item"], 
---                 HTMLElement "li" M.empty  [TextNode "Fourth numbered item"]]]
---     print $ toMarkdown exampleSimpleTree
---     print $ toMarkdown exampleListTree

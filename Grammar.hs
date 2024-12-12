@@ -12,5 +12,3 @@ html = do
     (HTMLElement closeTagName _ _) <- tagClose
     if openTagName /= tail closeTagName then Parser $ \input -> Left [TagsNotMatched]
     else return (HTMLElement openTagName attributes children)
--- this does not *properly* take into account the matching of tags yet
--- we should handle error propagation and aggregation properly.
